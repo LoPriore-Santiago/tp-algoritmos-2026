@@ -1,4 +1,4 @@
-#include <iostream>
+ #include <iostream>
  using namespace std;
  
  struct Mozo {
@@ -15,8 +15,8 @@ struct Producto{
 };
 
 struct Comandahistorica {
-    char fecha[11]; //"DD-MM-AAAA"
-    char nombreMozo [50]; // el nombre completo, repetido en cada venta
+    char fecha[11]; //
+    char nombreMozo [50]; 
     int codigoProducto;
     int cantidad;
     float comision;
@@ -29,6 +29,43 @@ int cantidad;
 float comision;
 };
 
-const float TASA_COMISION = 0.10f; //la comision de cada venta es el 10% de lo vendido
+const float TASA_COMISION = 0.10f; 
 
 const int K = 2; 
+
+void encriptar(char password[]) {
+    int K=2;  
+    int i=0;
+    while (password[i] != '\0') {
+        password[i] = password[i] + K; 
+        i++;
+    }
+}
+int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comision) {
+  for (int i=0; i < cantMozos; i++) {
+        if (mozos[i].nombre == nombre) {
+            mozos[i].totalcomision += comision;
+            return mozos[i].id;
+        }
+        int nuevoID = cantMozos +1;
+        mozos[cantMozos].id = nuevoID;
+       
+    }
+    return 0;
+}
+void generarArchivoMozos(Mozo mozos[], int cantMozos) {
+}
+int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comision) {
+    
+    
+    for (int i = 0; i < cantMozos; i++) {
+        
+        int j = 0;
+        while (mozos[i].nombre[j] != '\0' && nombre[j] != '\0' && mozos[i].nombre[j] == nombre[j]) {
+            j++;
+        }
+        if (mozos[i].nombre[j] == '\0' && nombre[j] == '\0') {
+            mozos[i].totalcomision += comision; 
+            return mozos[i].id; 
+        }
+    }
