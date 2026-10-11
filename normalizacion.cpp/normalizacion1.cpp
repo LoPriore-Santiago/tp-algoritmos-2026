@@ -47,7 +47,7 @@ void actualizarStock (int codigoProducto, int cantidadVendida){
     if (r.codigo == codigoProducto) {
      r.stockActual = r.stockActual - cantidadVendida;
       fseek(inventario, -(long)sizeof(Producto), SEEK_CUR);
-      fwrite(&R, sizeof(Producto), 1, inventario);
+      fwrite(&r, sizeof(Producto), 1, inventario);
       break;
     
     }
@@ -60,7 +60,7 @@ void procesarPlanillaDiaria(const char fecha[], comanda nuevaComanda) {
 
     char nombreArchivo [50];
 
-    
+    sprintf(nombreArchivo, "comandas_%s.dat", fecha);
 
     FILE *archivoDia = fopen (nombreArchivo, "ab");
 
@@ -69,5 +69,24 @@ void procesarPlanillaDiaria(const char fecha[], comanda nuevaComanda) {
         return;
     }
 
+    fwrite(&nuevaComanda, sizeof(comanda), 1, archivoDia);
+    fclose(archivoDia);
+
+}
+
+int main (){
+
+    FILE *archivoHistorico = fopen("comandas_historicas.dat", "rb");
+    
+    if (archivoHistorico == NULL) {
+        cout << "Error: No se pudo abrir comandas_historicas.dat" << endl;
+        return 1;
+    }
+
+    Comandahistorica ventaLeida;
+
+while (fread(&ventaLeida, sizeof(Comandahistorica), 1, archivoHistorico) == 1) {
+    
+}
 
 }
