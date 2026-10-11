@@ -3,7 +3,36 @@
 #include <cstring>
 
 
+
 using namespace std;
+
+struct Mozo {
+ int id;
+ char nombre [50];
+ char password [20];
+ float totalcomision;
+ };
+struct Producto{
+    int codigo; 
+   char descripcion [50];
+    float precio; 
+    int stockActual; 
+};
+
+struct Comandahistorica {
+    char fecha[11]; //
+    char nombreMozo [50]; 
+    int codigoProducto;
+    int cantidad;
+    float comision;
+};
+
+struct comanda {
+int idMozo;
+int codigoProducto;
+int cantidad;
+float comision;
+};
 
 void actualizarStock (int codigoProducto, int cantidadVendida){
     FILE *inventario = fopen("inventario.dat", "rb+");
@@ -25,4 +54,20 @@ void actualizarStock (int codigoProducto, int cantidadVendida){
  } 
 
   fclose(inventario);
+}
+
+void procesarPlanillaDiaria(const char fecha[], comanda nuevaComanda) {
+
+    char nombreArchivo [50];
+
+    
+
+    FILE *archivoDia = fopen (nombreArchivo, "ab");
+
+    if (archivoDia == NULL) {
+        cout << "Error al abrir la planilla del día" << endl;
+        return;
+    }
+
+
 }
