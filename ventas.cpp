@@ -14,9 +14,9 @@ struct Producto{
 };
 
 struct Mozo {
-    int idMozo;
+    int id;
     char nombre[50];
-    int password[20];
+    char password[20];
     float totalComision;
 };
 
@@ -85,9 +85,9 @@ bool buscarMozo(const char* nombreArchivo, int idMozo, Mozo& mozo){
 
             fseek(f, mitad * sizeof(Mozo), SEEK_SET);   // posicionamos el puntero al medio
             fread(&mozo, sizeof(Mozo), 1, f);  
-                if(mozo.idMozo == idMozo){
+                if(mozo.id == idMozo){
                     encontrado = true;
-                }else if(mozo.idMozo < idMozo){   
+                }else if(mozo.id < idMozo){   
                     inicio = mitad + 1;
                 }else{
                     fin = mitad - 1;
@@ -133,6 +133,8 @@ int main()
         return 1;
     }
 
+    // Pide el mozo para iniciar la venta
+
     int idMozo;
 
     cout << "Ingrese el ID del mozo: ";
@@ -140,17 +142,49 @@ int main()
 
     Mozo mozo;
     
-    if (buscarMozo("mozos.dat", idMozo, mozo)) {  // Si no encuentro al mozo
-        cout << "Mozo encontrado" << endl;
-            // VALIDAR TODAVIA CONTRASEÑA
-    }
-    else {
+    if (!buscarMozo("mozos.dat", idMozo, mozo)) {  // Si no encuentro al mozo
         cout << "Mozo no encontrado" << endl;
+        return 1;
     }
+
+    cout  << "Mozo encontrado: " << mozo.nombre << endl;
+
+    char passwordIngresada[20];
+
+    cout << "Ingrese su contraseña: ";
+    cin >> passwordIngresada; 
+
+    encriptar(passwordIngresada);  // Encriptamos la contraseña ingresada para compararla con la guardada en mozos.dat y ver si coinciden
+
+    if (!validarPassword(passwordIngresada, mozo.password)) {
+        
+        cout << "Contraseña incorrecta" << endl;
+        return 1;
+    }
+
+    cout << "Contraseña correcta. Acceso autorizado" << endl;
+
 
 
 
 
     calcularComision(100, 3);
+
+    void encriptar(char password[]) {   // 
+    int K=2;  
+    int i=0;
+    while (password[i] != '\0') {
+        password[i] = password[i] + K; 
+        i++;
+    }
+}
+
+// compara 2 cadenas de caracteres y retorna true si son iguales, false si son distitntas
+bool validarPassword(const char passwordIngresada[], const char passwordGuardada[]) {
+
+    return strcmp(passwordIngresada, passwordGuardada) == 0;
+}
+
+
     return 0;
 }
