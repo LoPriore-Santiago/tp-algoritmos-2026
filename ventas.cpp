@@ -29,12 +29,7 @@ struct Comanda {
 
 const float TASA_COMISION = 0.10f;
 
-
-
-
-
 // Funciones auxiliares 
-
 
 // Retorna el codigo del producto buscado, usamos busqueda binaria debido a que en el enunciado especifica que faltan codigos en el medio.(no podemos usar PUP)
 long buscarProducto( const char* nombreArchivo, int codigoProducto, Producto& producto){
@@ -45,7 +40,7 @@ long buscarProducto( const char* nombreArchivo, int codigoProducto, Producto& pr
     }
 
     fseek(f, 0, SEEK_END);
-    long n = ftell(f) / sizeof(Producto);       // cantidad de productos que hay en ""inventarios.dat"
+    long n = ftell(f) / sizeof(Producto);       // cantidad de productos que hay en ""inventario.dat"
     long inicio = 0;                           
     long fin = n - 1;
     long pos = -1;
@@ -96,6 +91,46 @@ bool buscarMozo(const char* nombreArchivo, int idMozo, Mozo& mozo){
         fclose(f);
         return encontrado;
 };
+
+// Ordenamos la planilla por mozo con Ordenamiento Burbuja
+bool ordenarPlanilla(const char* nombreArchivo) {
+
+    FILE* f = fopen(nombreArchivo, "rb+");  //rb+ para leer las comandas, comparar sus datos y escribirlas nuevamente cuando haya que intercambiarlas.
+
+    if(f == NULL) {
+        return false;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long cantidad = ftell(f) / sizeof(Comanda);  // ver cantidad de comandas
+
+    for(long i = 0; i < cantidad - 1; i++) {                   // recorre las pasadas del burbujeo
+        for(long j = 0; j < cantidad - i - 1; j++) {           // recorre las comandas que hay que comparar 
+
+            Comanda actual;
+            Comanda siguiente;
+
+            fseek(f, j * sizeof(Comanda), SEEK_SET);          // nos posiciona en el registro que queremos leer
+            fread(&actual, sizeof(Comanda), 1, f);            // copia ese registro a una variable de tipo Comanda.
+
+            fseek(f, (j + 1) * sizeof(Comanda), SEEK_SET);
+            fread(&siguiente, sizeof(Comanda), 1, f);
+
+            if(actual.idMozo > siguiente.idMozo){
+
+                fseek(f, j * sizeof(Comanda), SEEK_SET);
+                fwrite(&siguiente, sizeof(Comanda), 1, f);
+
+                fseek(f, (j + 1) * sizeof(Comanda), SEEK_SET);
+                fwrite(&actual, sizeof(Comanda), 1, f);
+            }
+        }
+    }
+    fclose(f);
+    return true;
+
+}
+
 
 
 
@@ -225,32 +260,14 @@ int main() {
 
     fclose(f);
 
+    if(ordenarPlanilla(nombreComanda)) {
+        cout << "Planilla ordenada correctamente" << endl;
+    }
+    else {
+        cout << "Error al ordenar la planilla" << endl;
+    }
+
     cout << "Carga de ventas finalizada" << endl;
-
-    return 0;
-}
-
-
-
-
-
-
-    
-    
-
-    
-
-      
-
-    
-
-    
-    
-
-    
-
-
-
 
     return 0;
 }
