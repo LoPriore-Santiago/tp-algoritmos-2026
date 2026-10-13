@@ -104,9 +104,20 @@ float calcularComision(float precio, int cantidad)
     return precio * cantidad * TASA_COMISION;
 };
 
+void encriptar(char password[]) {   // 
+    int K=2;  
+    int i=0;
+    while (password[i] != '\0') {
+        password[i] = password[i] + K; 
+        i++;
+    }
+}
 
+// compara 2 cadenas de caracteres y retorna true si son iguales, false si son distitntas
+bool validarPassword(const char passwordIngresada[], const char passwordGuardada[]) {
 
-
+    return strcmp(passwordIngresada, passwordGuardada) == 0;
+}
 
 
 int main()
@@ -146,44 +157,86 @@ int main()
         cout << "Mozo no encontrado" << endl;
         return 1;
     }
+    else {
+        char passwordIngresada[20];
 
-    cout  << "Mozo encontrado: " << mozo.nombre << endl;
+        cout << "Ingrese su contraseña: ";
+        cin >> passwordIngresada; 
 
-    char passwordIngresada[20];
+        encriptar(passwordIngresada);    // Encriptamos la contraseña ingresada para compararla con la guardada en mozos.dat y ver si coinciden
 
-    cout << "Ingrese su contraseña: ";
-    cin >> passwordIngresada; 
-
-    encriptar(passwordIngresada);  // Encriptamos la contraseña ingresada para compararla con la guardada en mozos.dat y ver si coinciden
-
-    if (!validarPassword(passwordIngresada, mozo.password)) {
+        if (!validarPassword(passwordIngresada, mozo.password)) {
         
-        cout << "Contraseña incorrecta" << endl;
+        cout << "Contraseña incorrecta. Acceso denegado" << endl;
         return 1;
+      }
+       else{                        //Buscamos el producto
+            int codigoProducto;
+
+            cout << "Ingrese el codigo del producto: ";
+            cin >> codigoProducto;
+
+            Producto producto;
+
+            if(buscarProducto("inventario.dat", codigoProducto, producto) == -1) {
+                cout << "Producto no encontrado" << endl;
+            }
+            else {
+                cout << "Producto:" << producto.descripcion << endl;
+                cout << "Precio: " << producto.precio << endl;
+
+                int cantidad; 
+
+                cout << "Ingrese la cantidad vendida: ";
+                cin >> cantidad;
+
+                if(cantidad <= 0 ) {
+                    cout << "Cantidad invalida" << endl;
+                }
+                else {
+
+                    float comision = calcularComision(producto.precio, cantidad);   
+
+                    Comanda nuevaComanda:
+
+                    nuevaComanda.idMozo = idMozo:
+                    nuevaComanda.codigoProducto = codigoProducto;
+                    nuevaComanda.cantidad = cantidad;
+                    nuevaComanda.comision = comision;
+
+                    if(fwrite(&nuevaComanda, sizeof(Comanda), 1, f) == 1) {
+
+                        cout << "Comanda registrada correctamente" << endl; 
+                        cout << "Comision generada: " << comision << endl;
+                    }
+                    else {
+                        cout << "Error al registrar la comanda" << endl;
+                    }
+
+                }
+            }
+       } 
     }
+    
+
+    
+
+      
+
+    
 
     cout << "Contraseña correcta. Acceso autorizado" << endl;
 
+    
 
 
 
 
     calcularComision(100, 3);
 
-    void encriptar(char password[]) {   // 
-    int K=2;  
-    int i=0;
-    while (password[i] != '\0') {
-        password[i] = password[i] + K; 
-        i++;
-    }
-}
+    
 
-// compara 2 cadenas de caracteres y retorna true si son iguales, false si son distitntas
-bool validarPassword(const char passwordIngresada[], const char passwordGuardada[]) {
 
-    return strcmp(passwordIngresada, passwordGuardada) == 0;
-}
 
 
     return 0;
