@@ -42,20 +42,6 @@ void encriptar(char password[]) {
     }
 }
 int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comision) {
-  for (int i=0; i < cantMozos; i++) {
-        if (mozos[i].nombre == nombre) {
-            mozos[i].totalcomision += comision;
-            return mozos[i].id;
-        }
-        int nuevoID = cantMozos +1;
-        mozos[cantMozos].id = nuevoID;
-       
-    }
-    return 0;
-}
-void generarArchivoMozos(Mozo mozos[], int cantMozos) {
-}
-int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comision) {
     
     
     for (int i = 0; i < cantMozos; i++) {
@@ -69,3 +55,37 @@ int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comisi
             return mozos[i].id; 
         }
     }
+    int nuevoID = cantMozos + 1; 
+    mozos[cantMozos].id = nuevoID;
+
+    int k = 0;
+    while (nombre[k] != '\0') {
+        mozos[cantMozos].nombre[k] = nombre[k];
+        k++;
+    }
+    mozos[cantMozos].nombre[k] = '\0'; 
+    mozos[cantMozos].totalcomision = comision;
+    mozos[cantMozos].password[0] = '0' + nuevoID; 
+    mozos[cantMozos].password[1] = '\0'; 
+    encriptar(mozos[cantMozos].password);
+    cantMozos++; 
+    return nuevoID; 
+}
+void generarArchivoMozos(Mozo mozos[], int cantMozos) {
+    for (int i = 0; i < cantMozos - 1; i++) {
+        for (int j = 0; j < cantMozos - i - 1; j++) {
+            if (mozos[j].id > mozos[j + 1].id) {
+                Mozo aux = mozos[j];
+                mozos[j] = mozos[j + 1];
+                mozos[j + 1] = aux;
+            }
+        }
+    }
+    FILE *archivo = fopen("mozos.dat", "wb");
+    if (archivo == NULL) {
+        cout << "Error al abrir el archivo mozos.dat para escribir." << endl;
+        return;
+    }
+    fwrite(mozos, sizeof(Mozo), cantMozos, archivo);
+    fclose(archivo);
+}
