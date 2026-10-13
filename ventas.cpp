@@ -120,103 +120,122 @@ bool validarPassword(const char passwordIngresada[], const char passwordGuardada
 }
 
 
-int main()
-{
-// Pedir Fecha
+
+int main() {
+    // Pedir fecha
     char fecha[20];
 
     cout << "Ingrese la fecha del dia (dd-mm-aaaa): ";
+    cin.width(sizeof(fecha));
     cin >> fecha;
 
-// Generar nombre de la comanda/planilla
-    char nombreComanda[30];
+    // Generar nombre de la planilla
+    char nombreComanda[40];
+    sprintf(nombreComanda, "comandas_%s.dat", fecha);
 
-    sprintf(nombreComanda, "comandas_%s.dat", fecha); 
-
-    FILE* f = fopen(nombreComanda, "rb+");    // Abrir la planilla
-
-    if (f == NULL) {
-        f = fopen(nombreComanda, "wb+");       // Crear la planilla si no esta creada
-    }
+    // Abrir o crear la planilla para agregar ventas
+    FILE* f = fopen(nombreComanda, "ab");
 
     if (f == NULL) {
-        cout << "No se pudo abrir o crear la planilla" << endl;  //Error al crear planilla
+        cout << "No se pudo abrir o crear la planilla" << endl;
         return 1;
     }
 
-    // Pide el mozo para iniciar la venta
+    int opcion = 1;
 
-    int idMozo;
+    while (opcion != 0) {
+        cout << "Ingrese 1 para cargar una venta" << endl;
+        cout << "Ingrese 0 para terminar" << endl;
+        cin >> opcion;
 
-    cout << "Ingrese el ID del mozo: ";
-    cin >> idMozo;
+        if (opcion == 1) {
+            int idMozo;
 
-    Mozo mozo;
-    
-    if (!buscarMozo("mozos.dat", idMozo, mozo)) {  // Si no encuentro al mozo
-        cout << "Mozo no encontrado" << endl;
-        return 1;
-    }
-    else {
-        char passwordIngresada[20];
+            cout << "Ingrese el ID del mozo: ";
+            cin >> idMozo;
 
-        cout << "Ingrese su contraseña: ";
-        cin >> passwordIngresada; 
+            Mozo mozo;
 
-        encriptar(passwordIngresada);    // Encriptamos la contraseña ingresada para compararla con la guardada en mozos.dat y ver si coinciden
-
-        if (!validarPassword(passwordIngresada, mozo.password)) {
-        
-        cout << "Contraseña incorrecta. Acceso denegado" << endl;
-        return 1;
-      }
-       else{                        //Buscamos el producto
-            int codigoProducto;
-
-            cout << "Ingrese el codigo del producto: ";
-            cin >> codigoProducto;
-
-            Producto producto;
-
-            if(buscarProducto("inventario.dat", codigoProducto, producto) == -1) {
-                cout << "Producto no encontrado" << endl;
+            if (!buscarMozo("mozos.dat", idMozo, mozo)) {
+                cout << "Mozo no encontrado" << endl;
             }
             else {
-                cout << "Producto:" << producto.descripcion << endl;
-                cout << "Precio: " << producto.precio << endl;
+                char passwordIngresada[20];
 
-                int cantidad; 
+                cout << "Ingrese su contraseña: ";
+                cin.width(sizeof(passwordIngresada));
+                cin >> passwordIngresada;
 
-                cout << "Ingrese la cantidad vendida: ";
-                cin >> cantidad;
+                encriptar(passwordIngresada);
 
-                if(cantidad <= 0 ) {
-                    cout << "Cantidad invalida" << endl;
+                if (!validarPassword(passwordIngresada, mozo.password)) {
+                    cout << "Contraseña incorrecta. Acceso denegado"<< endl;
                 }
                 else {
+                    cout << "Contraseña correcta. Acceso autorizado"<< endl;
 
-                    float comision = calcularComision(producto.precio, cantidad);   
+                    int codigoProducto;
 
-                    Comanda nuevaComanda:
+                    cout << "Ingrese el codigo del producto: ";
+                    cin >> codigoProducto;
 
-                    nuevaComanda.idMozo = idMozo:
-                    nuevaComanda.codigoProducto = codigoProducto;
-                    nuevaComanda.cantidad = cantidad;
-                    nuevaComanda.comision = comision;
+                    Producto producto;
 
-                    if(fwrite(&nuevaComanda, sizeof(Comanda), 1, f) == 1) {
-
-                        cout << "Comanda registrada correctamente" << endl; 
-                        cout << "Comision generada: " << comision << endl;
+                    if (buscarProducto("inventario.dat", codigoProducto, producto) == -1) {
+                        cout << "Producto no encontrado" << endl;
                     }
                     else {
-                        cout << "Error al registrar la comanda" << endl;
-                    }
+                        cout << "Producto: " << producto.descripcion << endl;
+                        cout << "Precio: " << producto.precio << endl;
 
+                        int cantidad;
+
+                        cout << "Ingrese la cantidad vendida: ";
+                        cin >> cantidad;
+
+                        if (cantidad <= 0) {
+                            cout << "Cantidad invalida" << endl;
+                        }
+                        else {
+                            float comision = calcularComision(producto.precio, cantidad);
+
+                            Comanda nuevaComanda;
+
+                            nuevaComanda.idMozo = idMozo;
+                            nuevaComanda.codigoProducto = codigoProducto;
+                            nuevaComanda.cantidad = cantidad;
+                            nuevaComanda.comision = comision;
+
+                            if (fwrite(&nuevaComanda, sizeof(Comanda), 1, f) == 1) {
+                                cout << "Comanda registrada correctamente" << endl;
+                                cout << "Comision generada: " << comision << endl;
+                            }
+                            else {
+                                cout << "Error al registrar la comanda" << endl;
+                            }
+                        }
+                    }
                 }
             }
-       } 
+        }
+        else if (opcion != 0) {
+            cout << "Opcion invalida" << endl;
+        }
     }
+
+    fclose(f);
+
+    cout << "Carga de ventas finalizada" << endl;
+
+    return 0;
+}
+
+
+
+
+
+
+    
     
 
     
@@ -225,14 +244,8 @@ int main()
 
     
 
-    cout << "Contraseña correcta. Acceso autorizado" << endl;
-
     
-
-
-
-
-    calcularComision(100, 3);
+    
 
     
 
