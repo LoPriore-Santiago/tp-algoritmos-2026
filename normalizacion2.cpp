@@ -1,51 +1,50 @@
- #include <iostream>
- using namespace std;
- 
- struct Mozo {
- int id;
- char nombre [50];
- char password [20];
- float totalcomision;
- };
-struct Producto{
+#include <iostream>
+#include <cstdio>
+
+using namespace std;
+
+struct Mozo {
+    int id;
+    char nombre[50];
+    char password[20];
+    float totalcomision;
+};
+
+struct Producto {
     int codigo; 
-   char descripcion [50];
+    char descripcion[50];
     float precio; 
     int stockActual; 
 };
 
 struct Comandahistorica {
-    char fecha[11]; //
-    char nombreMozo [50]; 
+    char fecha[11];
+    char nombreMozo[50]; 
     int codigoProducto;
     int cantidad;
     float comision;
 };
 
 struct comanda {
-int idMozo;
-int codigoProducto;
-int cantidad;
-float comision;
+    int idMozo;
+    int codigoProducto;
+    int cantidad;
+    float comision;
 };
 
 const float TASA_COMISION = 0.10f; 
-
 const int K = 2; 
 
 void encriptar(char password[]) {
-    int K=2;  
-    int i=0;
+    int i = 0;
     while (password[i] != '\0') {
         password[i] = password[i] + K; 
         i++;
     }
 }
+
 int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comision) {
-    
-    
     for (int i = 0; i < cantMozos; i++) {
-        
         int j = 0;
         while (mozos[i].nombre[j] != '\0' && nombre[j] != '\0' && mozos[i].nombre[j] == nombre[j]) {
             j++;
@@ -55,6 +54,7 @@ int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comisi
             return mozos[i].id; 
         }
     }
+    
     int nuevoID = cantMozos + 1; 
     mozos[cantMozos].id = nuevoID;
 
@@ -71,6 +71,7 @@ int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comisi
     cantMozos++; 
     return nuevoID; 
 }
+
 void generarArchivoMozos(Mozo mozos[], int cantMozos) {
     for (int i = 0; i < cantMozos - 1; i++) {
         for (int j = 0; j < cantMozos - i - 1; j++) {
@@ -88,4 +89,42 @@ void generarArchivoMozos(Mozo mozos[], int cantMozos) {
     }
     fwrite(mozos, sizeof(Mozo), cantMozos, archivo);
     fclose(archivo);
+}
+int main() {
+    Mozo arregloMozos[50]; 
+    int cantidadDeMozos = 0;
+
+    FILE *archivoHistorico = fopen("comandas_historicas.dat", "rb");
+    
+    if (archivoHistorico == NULL) {
+        cout << "Error: No se pudo abrir comandas_historicas.dat." << endl;
+        return 1;
+    }
+
+    Comandahistorica ventaLeida;
+
+    cout << "Iniciando proceso de normalizacion..." << endl;
+
+    while (fread(&ventaLeida, sizeof(Comandahistorica), 1, archivoHistorico) == 1) {
+        
+        actualizarStock(ventaLeida.codigoProducto, ventaLeida.cantidad);
+
+        int idMozoEncontrado = procesarMozo(arregloMozos, cantidadDeMozos, ventaLeida.nombreMozo, ventaLeida.comision);
+
+        comanda nuevaComanda;
+        nuevaComanda.idMozo = idMozoEncontrado;
+        nuevaComanda.codigoProducto = ventaLeida.codigoProducto;
+        nuevaComanda.cantidad = ventaLeida.cantidad;
+        nuevaComanda.comision = ventaLeida.comision;
+
+        procesarPlanillaDiaria(ventaLeida.fecha, nuevaComanda);
+    }
+
+    fclose(archivoHistorico);
+
+    generarArchivoMozos(arregloMozos, cantidadDeMozos);
+
+    cout << "Normalizacion completada con exito." << endl;
+
+    return 0; 
 }
