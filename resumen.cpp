@@ -55,3 +55,53 @@ void mostrarMozo(FILE* fMozos, int id, int productos, float comision) {
     cout << " | Productos vendidos: " << productos
          << " | Comision a pagar: $" << comision << endl;
 }
+
+int main() {
+    char nombreSemana[50];
+    cout << "Nombre de la planilla semanal (ej: comandas_semana_s1-06.dat): ";
+    cin >> nombreSemana;
+
+    FILE* fSemana = fopen(nombreSemana, "rb");
+    if (fSemana == NULL) {
+        cout << "No se pudo abrir " << nombreSemana << endl;
+        return 1;
+    }
+    
+    FILE* fMozos = fopen("mozos.dat", "rb");
+    if (fMozos == NULL)
+        cout << "Aviso: no se encontro mozos.dat, se muestran solo los numeros." << endl;
+
+    Comanda c;
+    int mozoActual = -1;      
+    int prodMozo = 0;
+    float comMozo = 0;
+    int totalBuffet = 0;
+
+    cout << endl << "===== RESUMEN DE LA SEMANA =====" << endl;
+
+   
+    while (fread(&c, sizeof(c), 1, fSemana) == 1) {
+        if (c.idMozo != mozoActual) {
+            if (mozoActual != -1)                      
+                mostrarMozo(fMozos, mozoActual, prodMozo, comMozo);
+            mozoActual = c.idMozo;                   
+            prodMozo = 0;
+            comMozo = 0;
+        }
+        prodMozo += c.cantidad;
+        comMozo += c.comision;
+        totalBuffet += c.cantidad;
+    }
+    
+    if (mozoActual != -1)
+        mostrarMozo(fMozos, mozoActual, prodMozo, comMozo);
+    else
+        cout << "La planilla no tiene ventas." << endl;
+
+    cout << "-----------------------------------" << endl;
+    cout << "TOTAL DE PRODUCTOS VENDIDOS POR EL BUFFET: " << totalBuffet << endl;
+
+    fclose(fSemana);
+    if (fMozos != NULL) fclose(fMozos);
+    return 0;
+}
