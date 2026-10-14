@@ -1,8 +1,5 @@
 #include <iostream>
 #include <cstdio>
-#include <cstring>
-
-
 
 using namespace std;
 
@@ -74,19 +71,41 @@ void procesarPlanillaDiaria(const char fecha[], comanda nuevaComanda) {
 
 }
 
-int main (){
+int main() {
+    Mozo arregloMozos[50]; 
+    int cantidadDeMozos = 0;
 
     FILE *archivoHistorico = fopen("comandas_historicas.dat", "rb");
     
     if (archivoHistorico == NULL) {
-        cout << "Error: No se pudo abrir comandas_historicas.dat" << endl;
+        cout << "Error: No se pudo abrir comandas_historicas.dat." << endl;
         return 1;
     }
 
     Comandahistorica ventaLeida;
 
-while (fread(&ventaLeida, sizeof(Comandahistorica), 1, archivoHistorico) == 1) {
-    
-}
+    cout << "Iniciando proceso de normalizacion..." << endl;
 
+    while (fread(&ventaLeida, sizeof(Comandahistorica), 1, archivoHistorico) == 1) {
+        
+        actualizarStock(ventaLeida.codigoProducto, ventaLeida.cantidad);
+
+        int idMozoEncontrado = procesarMozo(arregloMozos, cantidadDeMozos, ventaLeida.nombreMozo, ventaLeida.comision);
+
+        comanda nuevaComanda;
+        nuevaComanda.idMozo = idMozoEncontrado;
+        nuevaComanda.codigoProducto = ventaLeida.codigoProducto;
+        nuevaComanda.cantidad = ventaLeida.cantidad;
+        nuevaComanda.comision = ventaLeida.comision;
+
+        procesarPlanillaDiaria(ventaLeida.fecha, nuevaComanda);
+    }
+
+    fclose(archivoHistorico);
+
+    generarArchivoMozos(arregloMozos, cantidadDeMozos);
+
+    cout << "Normalizacion completada con exito." << endl;
+
+    return 0; 
 }
