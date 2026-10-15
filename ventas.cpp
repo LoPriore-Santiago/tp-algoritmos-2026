@@ -35,6 +35,7 @@ const float TASA_COMISION = 0.10f;
 long buscarProducto( const char* nombreArchivo, int codigoProducto, Producto& producto){
 
     FILE* f =  fopen(nombreArchivo, "rb");
+    
     if (f == NULL){
         return -1;
     }
@@ -64,6 +65,7 @@ long buscarProducto( const char* nombreArchivo, int codigoProducto, Producto& pr
 //Pedimos el id del mozo y buscamos si existe
 bool buscarMozo(const char* nombreArchivo, int idMozo, Mozo& mozo){
     FILE* f = fopen(nombreArchivo, "rb");
+
     if (f == NULL){
         return false;
     }
@@ -91,6 +93,44 @@ bool buscarMozo(const char* nombreArchivo, int idMozo, Mozo& mozo){
         fclose(f);
         return encontrado;
 };
+
+bool actualizarStock(long posicion, int cantidadVendida){
+
+    FILE* inventario = fopen("inventario.dat", "rb+");
+
+    if(inventario == NULL){
+        return false;
+    }
+
+    Producto producto;
+
+    fseek(inventario, posicion * sizeof(Producto), SEEK_SET);
+
+    if(fread(&producto, sizeof(Producto), 1, inventario) != 1) {
+        fclose(inventario);
+        cout << "Error al leer el producto del inventario" << endl;
+        return false;
+    }
+    // caso en que se vende una cantidad mayor al stock disponible
+    if(cantidadVendida > producto.stockActual){
+        fclose(inventario);
+        cout << "Error: No hay stock suficiente. Stock disponible: " << producto.stockActual << endl;
+        return false;
+    }
+    producto.stockActual = producto.stockActual - cantidadVendida;
+
+    fseek(inventario, posicion * sizeof(Producto), SEEK_SET);
+    
+    if(fwrite(&producto, sizeof(Producto), 1, inventario) != 1){
+        fclose(inventario); 
+        cout << "Error al actualizar stock" << endl;
+        return false;
+    }
+
+    fclose(inventario);
+    return true;
+
+}
 
 // Ordenamos la planilla por mozo con Ordenamiento Burbuja
 bool ordenarPlanilla(const char* nombreArchivo) {
@@ -169,21 +209,22 @@ int main() {
     sprintf(nombreComanda, "comandas_%s.dat", fecha);
 
     // Abrir o crear la planilla para agregar ventas
-    FILE* f = fopen(nombreComanda, "ab");
+    FILE* f = fopen(nombreComanda, "ab");  // usamos ab ya que permite agregar registros sin borrar los que ya existen
 
     if (f == NULL) {
         cout << "No se pudo abrir o crear la planilla" << endl;
         return 1;
     }
 
-    int opcion = 1;
 
-    while (opcion != 0) {
+    char opcion = '1';
+
+    while (opcion != '0') {
         cout << "Ingrese 1 para cargar una venta" << endl;
         cout << "Ingrese 0 para terminar" << endl;
         cin >> opcion;
 
-        if (opcion == 1) {
+        if (opcion == '1') {
             int idMozo;
 
             cout << "Ingrese el ID del mozo: ";
@@ -204,10 +245,10 @@ int main() {
                 encriptar(passwordIngresada);
 
                 if (!validarPassword(passwordIngresada, mozo.password)) {
-                    cout << "Contraseña incorrecta. Acceso denegado"<< endl;
+                    cout << "Contraseña incorrecta. Acceso denegado" << endl;
                 }
                 else {
-                    cout << "Contraseña correcta. Acceso autorizado"<< endl;
+                    cout << "Contraseña correcta. Acceso autorizado" << endl;
 
                     int codigoProducto;
 
@@ -216,12 +257,18 @@ int main() {
 
                     Producto producto;
 
-                    if (buscarProducto("inventario.dat", codigoProducto, producto) == -1) {
+                    long posicionProducto = buscarProducto("inventario.dat", codigoProducto, producto);
+
+                    if (posicionProducto == -1) {
                         cout << "Producto no encontrado" << endl;
+                    }
+                    else if (producto.stockActual <= 0) {
+                        cout << "Producto sin stock" << endl;
                     }
                     else {
                         cout << "Producto: " << producto.descripcion << endl;
                         cout << "Precio: " << producto.precio << endl;
+                        cout << "Stock disponible: " << producto.stockActual << endl;
 
                         int cantidad;
 
@@ -231,32 +278,41 @@ int main() {
                         if (cantidad <= 0) {
                             cout << "Cantidad invalida" << endl;
                         }
+                        else if (cantidad > producto.stockActual) {      // evitamos que se venda mas de lo que hay
+                            cout << "No hay stock suficiente" << endl;
+                        }
                         else {
                             float comision = calcularComision(producto.precio, cantidad);
 
-                            Comanda nuevaComanda;
+                            // Actualizamos el stock antes de guardar la comanda.
+                            if (actualizarStock(posicionProducto, cantidad)) {
 
-                            nuevaComanda.idMozo = idMozo;
-                            nuevaComanda.codigoProducto = codigoProducto;
-                            nuevaComanda.cantidad = cantidad;
-                            nuevaComanda.comision = comision;
+                                Comanda nuevaComanda;
 
-                            if (fwrite(&nuevaComanda, sizeof(Comanda), 1, f) == 1) {
-                                cout << "Comanda registrada correctamente" << endl;
-                                cout << "Comision generada: " << comision << endl;
-                            }
-                            else {
-                                cout << "Error al registrar la comanda" << endl;
+                                nuevaComanda.idMozo = idMozo;
+                                nuevaComanda.codigoProducto = codigoProducto;
+                                nuevaComanda.cantidad = cantidad;
+                                nuevaComanda.comision = comision;
+
+                                if (fwrite(&nuevaComanda,
+                                        sizeof(Comanda), 1, f) == 1) {
+                                    cout << "Comanda registrada correctamente" << endl;
+                                    cout << "Comision generada: " << comision << endl;
+                                }
+                                else {
+                                    cout << "Error al registrar la comanda" << endl;
+                                }
                             }
                         }
                     }
                 }
             }
         }
-        else if (opcion != 0) {
-            cout << "Opcion invalida" << endl;
+        else if (opcion != '0') {
+            cout << "Opcion invalida. Ingrese 1 o 0." << endl;
         }
     }
+
 
     fclose(f);
 

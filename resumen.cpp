@@ -55,17 +55,55 @@ void mostrarMozo(FILE* fMozos, int id, int productos, float comision) {
     cout << " | Productos vendidos: " << productos
          << " | Comision a pagar: $" << comision << endl;
 }
-
+void armarNombre(char destino[], char sufijo[]) {
+    char prefijo[] = "comandas_semana_";
+    char extension[] = ".dat";
+    int i = 0, j = 0;
+    while (prefijo[j] != '\0') { destino[i] = prefijo[j]; i++; j++; }
+    j = 0;
+    while (sufijo[j] != '\0') { destino[i] = sufijo[j]; i++; j++; }
+    j = 0;
+    while (extension[j] != '\0') { destino[i] = extension[j]; i++; j++; }
+    destino[i] = '\0';
+}
+bool sufijoValido(char s[]) {
+    int i = 0;
+    if (s[i] != 's') return false;
+    i++;
+    int digitos = 0;
+    while (s[i] >= '0' && s[i] <= '9') { i++; digitos++; }
+    if (digitos == 0) return false;
+    if (s[i] != '-') return false;
+    i++;
+    if (s[i] < '0' || s[i] > '9' || s[i+1] < '0' || s[i+1] > '9') return false;
+    int mes = (s[i] - '0') * 10 + (s[i+1] - '0');
+    if (mes < 1 || mes > 12) return false;
+    if (s[i+2] != '\0') return false;
+    return true;
+}
 int main() {
-    char nombreSemana[50];
-    cout << "Nombre de la planilla semanal (ej: comandas_semana_s1-06.dat): ";
-    cin >> nombreSemana;
+    char sufijo[20];
+    char nombreSemana[60];
+    FILE* fSemana = NULL;
 
-    FILE* fSemana = fopen(nombreSemana, "rb");
-    if (fSemana == NULL) {
-        cout << "No se pudo abrir " << nombreSemana << endl;
-        return 1;
+    while (fSemana == NULL) {
+        cout << "Semana a resumir (ej: s1-06, 0 para salir): ";
+        if (!(cin >> sufijo)) return 1;                
+        if (sufijo[0] == '0' && sufijo[1] == '\0') {
+            cout << "Programa finalizado." << endl;
+            return 0;
+        }
+        if (!sufijoValido(sufijo)) {
+            cout << "Formato invalido. Use sX-mm, por ejemplo s1-06." << endl;
+        }
+        else {
+            armarNombre(nombreSemana, sufijo);          
+            fSemana = fopen(nombreSemana, "rb");
+            if (fSemana == NULL)
+                cout << "No se encontro la semana " << sufijo << ". Intente de nuevo." << endl;
+        }
     }
+    
     
     FILE* fMozos = fopen("mozos.dat", "rb");
     if (fMozos == NULL)
