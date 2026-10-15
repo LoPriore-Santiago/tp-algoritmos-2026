@@ -18,10 +18,15 @@ int main(){
 
 vector<comanda> todas; 
 
-//ejemplo : abrir varios archuvis diarios 
+//ejemplo : abrir varios archivos diarios 
 int cantarchivos;
 cout << "ingrese la cantidad de archivos diarios" << endl;
 cin >> cantarchivos;
+
+if (cin.fail() || cantarchivos <= 0) {
+    cout << "Cantidad de archivos invalida" << endl;
+    return 1;
+}
 
 for (int i=0; i<cantarchivos;i++){
     char nombreArchivo[40];
@@ -59,11 +64,27 @@ for (int i = 0; i < n - 1; i++) {
     }
 }
 //guardar en archivo semanal
+int semana,mes;
 char nombreSemanal[40];
 
-cout << "Ingrese el nombre del archivo semanal: ";
-cin.width(sizeof(nombreSemanal));
-cin >> nombreSemanal;
+cout << "Ingrese el numero de semana: ";
+if (!(cin >> semana)) {
+    cout << "Semana invalida" << endl;
+    return 1;
+}
+cout << "Ingrese el mes: ";
+if (!(cin >> mes)) {
+    cout << "Mes invalido" << endl;
+    return 1;
+}
+if (semana < 1 || mes < 1 || mes > 12) {
+    cout << "Error: semana o mes invalido" << endl;
+    return 1;
+}
+
+snprintf(nombreSemanal, sizeof(nombreSemanal),
+    "comandas_semana_s%d-%02d.dat",
+    semana, mes);
 
 FILE *out = fopen(nombreSemanal, "wb");
 
