@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>    
+#include <string>
 #include <vector>    
 using namespace std;
 
@@ -65,7 +66,7 @@ for (int i = 0; i < n - 1; i++) {
 }
 //guardar en archivo semanal
 int semana,mes;
-char nombreSemanal[40];
+string nombreSemanal;
 
 cout << "Ingrese el numero de semana: ";
 if (!(cin >> semana)) {
@@ -82,12 +83,11 @@ if (semana < 1 || mes < 1 || mes > 12) {
     return 1;
 }
 
-snprintf(nombreSemanal, sizeof(nombreSemanal),
-    "comandas_semana_s%d-%02d.dat",
-    semana, mes);
+nombreSemanal = "comandas_semana_s" + to_string(semana) + "-" + (mes<10? "0" : "") + to_string(mes)+ ".dat";
 
-FILE *out = fopen(nombreSemanal, "wb");
 
+
+FILE *out = fopen(nombreSemanal.c_str(), "wb");
 if (out == NULL) {
     cout << "Error al crear el archivo semanal" << endl;
     return 1;
