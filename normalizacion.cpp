@@ -4,7 +4,7 @@
 using namespace std;
 
 struct Mozo {
- int id;
+ int idMozo;
  char nombre [50];
  char password [20];
  float totalcomision;
@@ -50,12 +50,12 @@ int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comisi
         }
         if (mozos[i].nombre[j] == '\0' && nombre[j] == '\0') {
             mozos[i].totalcomision += comision; 
-            return mozos[i].id; 
+            return mozos[i].idMozo; 
         }
     }
     
     int nuevoID = cantMozos + 1; 
-    mozos[cantMozos].id = nuevoID;
+    mozos[cantMozos].idMozo = nuevoID;
 
     int k = 0;
     while (nombre[k] != '\0') {
@@ -74,7 +74,7 @@ int procesarMozo(Mozo mozos[], int &cantMozos, const char nombre[], float comisi
 void generarArchivoMozos(Mozo mozos[], int cantMozos) {
     for (int i = 0; i < cantMozos - 1; i++) {
         for (int j = 0; j < cantMozos - i - 1; j++) {
-            if (mozos[j].id > mozos[j + 1].id) {
+            if (mozos[j].idMozo > mozos[j + 1].idMozo) {
                 Mozo aux = mozos[j];
                 mozos[j] = mozos[j + 1];
                 mozos[j + 1] = aux;
@@ -130,9 +130,38 @@ void procesarPlanillaDiaria(const char fecha[], comanda nuevaComanda) {
 
 }
 
+void ordenarPlanillaDia(const char nombreArchivo[]) {
+    FILE *f = fopen(nombreArchivo, "rb");
+    if (f == NULL) return;
+
+    comanda ventasDelDia[500];
+    int cantVentas = 0;
+    
+    while (fread(&ventasDelDia[cantVentas], sizeof(comanda), 1, f) == 1) {
+        cantVentas++;
+    }
+    fclose(f);
+
+    for (int i = 0; i < cantVentas - 1; i++) {
+        for (int j = 0; j < cantVentas - i - 1; j++) {
+            if (ventasDelDia[j].idMozo > ventasDelDia[j + 1].idMozo) {
+                comanda aux = ventasDelDia[j];
+                ventasDelDia[j] = ventasDelDia[j + 1];
+                ventasDelDia[j + 1] = aux;
+            }
+        }
+    }
+
+    f = fopen(nombreArchivo, "wb");
+    fwrite(ventasDelDia, sizeof(comanda), cantVentas, f);
+    fclose(f);
+}
+
 int main() {
     Mozo arregloMozos[50]; 
     int cantidadDeMozos = 0;
+    char planillasGeneradas[100][50]; 
+    int cantPlanillas = 0;
 
     FILE *archivoHistorico = fopen("comandas_historicas.dat", "rb");
     
@@ -157,12 +186,47 @@ int main() {
         nuevaComanda.cantidad = ventaLeida.cantidad;
         nuevaComanda.comision = ventaLeida.comision;
 
+        char nombreArchivoDia[50];
+        sprintf(nombreArchivoDia, "comandas_%s.dat", ventaLeida.fecha);
+
+        
+        bool archivoYaExiste = false;
+        for (int i = 0; i < cantPlanillas; i++) {
+            int j = 0;
+            bool sonIguales = true;
+            
+            while (planillasGeneradas[i][j] != '\0' || nombreArchivoDia[j] != '\0') {
+                if (planillasGeneradas[i][j] != nombreArchivoDia[j]) {
+                    sonIguales = false; 
+                    break;
+                }
+                j++;
+            }
+            
+            if (sonIguales) {
+                archivoYaExiste = true;
+                break;
+            }
+        }
+       if (!archivoYaExiste) {
+            int k = 0;
+            while (nombreArchivoDia[k] != '\0') {
+                planillasGeneradas[cantPlanillas][k] = nombreArchivoDia[k];
+                k++;
+            }
+            planillasGeneradas[cantPlanillas][k] = '\0'; 
+            cantPlanillas++;
+        }
         procesarPlanillaDiaria(ventaLeida.fecha, nuevaComanda);
     }
 
     fclose(archivoHistorico);
 
     generarArchivoMozos(arregloMozos, cantidadDeMozos);
+
+    for (int i = 0; i < cantPlanillas; i++) {
+        ordenarPlanillaDia(planillasGeneradas[i]);
+    }
 
     cout << "Normalizacion completada con exito." << endl;
 

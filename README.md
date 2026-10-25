@@ -3,8 +3,15 @@
 Trabajo Práctico grupal de **Algoritmos y Estructuras de Datos** (UTN FRBA) —
 unidad de **archivos binarios en C/C++**.
 
-> **Grupo:** _(completar: número de grupo)_
-> **Integrantes:** _(nombre — usuario de GitHub, uno por línea)_
+> **Grupo:** _3_
+> **Integrantes:** 
+_ Alumno: Ignacio Chantre // Github: nachoow _
+_ Alumno: Gonzalo Navarro // Github: Gonzalonavarro02 _
+_ Alumno: Nazareno Rodriguez  // Github: nazrodriguez19 _
+_ Alumno: Lucía Mengelatte  Bembi   // Github: LuciaMengelatte _
+_ Alumno: Santiago Lo Priore   // Github: LoPriore-Santiago_
+
+*Aclaracion: los commmits de ventas.cpp estan hechos por dos cuentas de Github diferentes(Santi-Lp  / LoPriore-Santiago), debido a que tuve una confusion y en Visual Studio Code tenia vinculado otra cuenta de Github. Pero esta hecho por el mismo alumno (Santiago Lo Priore)
 
 La consigna completa está en **`enunciado.pdf`**. Leela antes de arrancar: el
 cliente (Alberto) cuenta su problema a su manera y ustedes tienen que descubrir
