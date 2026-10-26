@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstdio>    
-#include <string>
-#include <vector>    
+#include <string> 
 using namespace std;
 
 /*cierre.cpp Junta las planillas de todos los días de la semana en una sola
@@ -15,19 +14,25 @@ struct comanda{
     int cantidad;
     float comision;
 };
+
+const int MAX_ARCHIVOS = 7;
+
 int main(){
 
-vector<comanda> todas; 
+FILE*archivos[MAX_ARCHIVOS];
+comanda actuales[MAX_ARCHIVOS];
+bool hayDatos[MAX_ARCHIVOS];
 
-//ejemplo : abrir varios archivos diarios 
 int cantarchivos;
 cout << "ingrese la cantidad de archivos diarios" << endl;
 cin >> cantarchivos;
 
-if (cin.fail() || cantarchivos <= 0) {
+if (cin.fail() || cantarchivos <= 0 || cantarchivos > MAX_ARCHIVOS){ 
     cout << "Cantidad de archivos invalida" << endl;
     return 1;
 }
+
+// abrir varios archivos diarios 
 
 for (int i=0; i<cantarchivos;i++){
     char nombreArchivo[40];
@@ -36,50 +41,51 @@ for (int i=0; i<cantarchivos;i++){
     cin.width(sizeof(nombreArchivo));
     cin >> nombreArchivo;
 
-    FILE * f =fopen(nombreArchivo,"rb");
-    if(f!=NULL){
-        comanda c;
-        while (fread(&c,sizeof(comanda),1,f)==1){
-            todas.push_back(c);
+    archivos[i]=fopen(nombreArchivo, "rb" );
+
+    if(archivos[i]==NULL){
+        cout << "error: no se pudo abrir el archivo" << endl;
+        for(int j=0;j<i;j++){
+            fclose(archivos[j]);
         }
-     fclose(f);
-    }
-    else {
-    cout << "Error: no se pudo abrir el archivo" << endl;
-    return 1;
-    }
+
+        return 1;
+
+ }
+
+//leer la primera comanda de cada archivo
+hayDatos[i]= fread(&actuales[i],sizeof(comanda),1,archivos[i])==1;
 }
-//ordenar por mozo, metodo de burbuja 
-int n= todas.size();
 
-for (int i = 0; i < n - 1; i++) {
-    for (int j = 0; j < n - i - 1; j++) {
-
-        if (todas[j].idMozo > todas[j + 1].idMozo) {
-
-            comanda aux = todas[j];
-            todas[j] = todas[j + 1];
-            todas[j + 1] = aux;
-
-        }
-    }
-}
-//guardar en archivo semanal
+// Pedir semana y mes para generar el archivo semanal
 int semana,mes;
 string nombreSemanal;
 
 cout << "Ingrese el numero de semana: ";
 if (!(cin >> semana)) {
     cout << "Semana invalida" << endl;
+
+    for(int i=0;i<cantarchivos;i++){
+        fclose(archivos[i]);
+    }
     return 1;
 }
 cout << "Ingrese el mes: ";
 if (!(cin >> mes)) {
     cout << "Mes invalido" << endl;
+
+    for(int i=0;i<cantarchivos;i++){
+        fclose(archivos[i]);
+
+    }
     return 1;
 }
 if (semana < 1 || mes < 1 || mes > 12) {
     cout << "Error: semana o mes invalido" << endl;
+    
+    for (int i=0;i<cantarchivos;i++){
+        fclose(archivos[i]);
+    }
     return 1;
 }
 
@@ -90,14 +96,50 @@ nombreSemanal = "comandas_semana_s" + to_string(semana) + "-" + (mes<10? "0" : "
 FILE *out = fopen(nombreSemanal.c_str(), "wb");
 if (out == NULL) {
     cout << "Error al crear el archivo semanal" << endl;
+
+    for(int i=0;i<cantarchivos;i++){
+        fclose(archivos[i]);
+    }
     return 1;
 }
-for (auto &c : todas) {
-    if (fwrite(&c, sizeof(comanda), 1, out) != 1) {
-        cout << "Error al escribir la comanda" << endl;
+//apareo de multiples archivos
+while(true){
+    int menor=-1;
+    //buscar comanda con menor ID de mozo
+    for(int i=0;i<cantarchivos;i++){
+        if(hayDatos[i]){
+
+            if(menor ==-1 || actuales[i].idMozo < actuales[menor].idMozo){
+                menor = i ;
+            }
+        }
+    }
+
+    // Si no quedan comandas en ningun archivo, termina el apareo
+    if(menor ==-1){
+        break;
+    }
+
+    //escribir comanda seleccionada
+
+    if(fwrite(&actuales[menor],sizeof(comanda),1,out)!=1){
+        cout << "error al escribir la comanda" << endl;
         fclose(out);
+
+        for(int i=0; i<cantarchivos;i++){
+            fclose(archivos[i]);
+        }
         return 1;
     }
+
+    //avanzar solamente en el archivo seleccionado
+
+    hayDatos[menor]=fread(&actuales[menor],sizeof(comanda),1,archivos[menor])==1;
+
+}  
+// Cerrar los archivos diarios
+for (int i = 0; i < cantarchivos; i++) {
+     fclose(archivos[i]);
 }
 
 fclose(out);
